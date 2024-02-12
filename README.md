@@ -77,3 +77,34 @@ WHERE DATE(cleaned_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
 SELECT COUNT(DISTINCT PULocationID)
 FROM esoteric-cab-411900.trips_data_all.cleaned_green_trip_data
 WHERE DATE(cleaned_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
+
+------ Building Machine Learning Model in Google Cloud ------
+
+-- Optimizing data types for linear regression: enumerated int types get converted to strings for automatic one-hot encoding into sparse vector.
+CREATE OR REPLACE TABLE esoteric-cab-411900.trips_data_all.green_trip_data_tip_linear_regression (
+  passenger_count FLOAT64,
+  trip_distance FLOAT64,
+  PULocationID STRING,
+  DOLocationID STRING,
+  payment_type STRING,
+  fare_amount FLOAT64,
+  tolls_amount FLOAT64,
+  tip_amount FLOAT64,
+) AS (
+  SELECT passenger_count, trip_distance, cast(PULocationID AS STRING), CAST(DOLocationID AS STRING), CAST (payment_type AS STRING), fare_amount, tolls_amount, tip_amount
+  FROM esoteric-cab-411900.trips_data_all.cleaned_green_trip_data WHERE fare_amount != 0
+);
+
+-- Build linear regression model to approximate tip
+CREATE OR REPLACE MODEL `esoteric-cab-411900.trips_data_all.tip_model`
+OPTIONS
+  (model_type='linear_reg',
+  input_label_cols=['tip_amount'],
+  DATA_SPLIT_METHOD='AUTO_SPLIT') AS
+SELECT *
+FROM `esoteric-cab-411900.trips_data_all.green_trip_data_tip_linear_regression`
+WHERE tip_amount IS NOT NULL;
+
+-- Check features
+SELECT *
+FROM ML.FEATURE_INFO(MODEL `esoteric-cab-411900.trips_data_all.tip_model`);
