@@ -1,6 +1,7 @@
 # RedShift_BigQuery_SQL_Queries
 
 -- import table from gcs
+
 CREATE OR REPLACE EXTERNAL TABLE `esoteric-cab-411900.trips_data_all.external_green_trip_data`
 -- (
 --   VendorID INT64,
@@ -36,23 +37,28 @@ SELECT *, TIMESTAMP_MICROS(CAST(lpep_pickup_datetime / 1000 AS INT64)) AS cleane
 FROM esoteric-cab-411900.trips_data_all.external_green_trip_data;
 
 -- question 1, count records
+
 SELECT COUNT(*)
 FROM trips_data_all.external_green_trip_data;
 
 -- question 2, distinct # of PULocationIDs for internal table
+
 SELECT DISTINCT PULocationID
 FROM esoteric-cab-411900.trips_data_all.internal_green_trip_data;
 
 --distinct # of PULocationIDs for external table
+
 SELECT DISTINCT PULocationID
 FROM esoteric-cab-411900.trips_data_all.external_green_trip_data;
 
 -- question 3, how many records have fare_amount of 0?
+
 SELECT count(fare_amount)
 FROM esoteric-cab-411900.trips_data_all.internal_green_trip_data
 WHERE fare_amount = 0;
 
 -- question 4, partitioned and clustered
+
 CREATE OR REPLACE TABLE esoteric-cab-411900.trips_data_all.cleaned_green_trip_data
 PARTITION BY DATE(cleaned_pickup_datetime)
 CLUSTER BY PULocationID
@@ -61,11 +67,13 @@ SELECT *
 FROM esoteric-cab-411900.trips_data_all.internal_green_trip_data;
 
 -- question 5, distinct PULocationID between 6/1/2022 and 6/30/2022 inclusive for regular table
+
 SELECT COUNT(DISTINCT PULocationID)
 FROM esoteric-cab-411900.trips_data_all.internal_green_trip_data
 WHERE DATE(cleaned_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
 
 -- Distinct PULocationID between 6/1/2022 and 6/30/2022 inclusive for partitioned table
+
 SELECT COUNT(DISTINCT PULocationID)
 FROM esoteric-cab-411900.trips_data_all.cleaned_green_trip_data
 WHERE DATE(cleaned_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
