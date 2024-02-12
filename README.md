@@ -1,0 +1,1 @@
+# RedShift_BigQuery_SQL_Queries
